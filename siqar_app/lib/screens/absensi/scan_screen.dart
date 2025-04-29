@@ -20,6 +20,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   bool _isQRChecked = false;
   bool _hasPermission = false;
   String _scanType = 'masuk'; // Default scan type
+  bool _isTorchOn = false;
   
   @override
   void initState() {
@@ -338,10 +339,9 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       children: [
         MobileScanner(
           controller: _scannerController,
-          onDetect: (capture) {
-            final List<Barcode> barcodes = capture.barcodes;
-            if (barcodes.isNotEmpty && mounted) {
-              final String code = barcodes.first.rawValue ?? '';
+          onDetect: (barcode, args) {
+            if (barcode.rawValue != null && mounted && !_isProcessing) {
+              final code = barcode.rawValue!;
               if (code.isNotEmpty) {
                 _processScanResult(code);
               }
@@ -411,33 +411,20 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
           actions: [
             if (!_isQRChecked)
               IconButton(
-                icon: ValueListenableBuilder(
-                  valueListenable: _scannerController.torchState,
-                  builder: (context, state, child) {
-                    switch (state) {
-                      case TorchState.off:
-                        return const Icon(Icons.flash_off);
-                      case TorchState.on:
-                        return const Icon(Icons.flash_on);
-                    }
-                  },
-                ),
-                onPressed: () => _scannerController.toggleTorch(),
+                icon: Icon(_isTorchOn ? Icons.flash_on : Icons.flash_off),
+                onPressed: () {
+                  setState(() {
+                    _isTorchOn = !_isTorchOn;
+                    _scannerController.toggleTorch();
+                  });
+                },
               ),
             if (!_isQRChecked)
               IconButton(
-                icon: ValueListenableBuilder(
-                  valueListenable: _scannerController.cameraFacingState,
-                  builder: (context, state, child) {
-                    switch (state) {
-                      case CameraFacing.front:
-                        return const Icon(Icons.camera_front);
-                      case CameraFacing.back:
-                        return const Icon(Icons.camera_rear);
-                    }
-                  },
-                ),
-                onPressed: () => _scannerController.switchCamera(),
+                icon: const Icon(Icons.flip_camera_ios),
+                onPressed: () {
+                  _scannerController.switchCamera();
+                },
               ),
           ],
         ),

@@ -38,7 +38,7 @@ dependencies:
   
   # QR Code
   qr_flutter: ^4.1.0
-  mobile_scanner: ^6.0.10
+  mobile_scanner: ^1.1.2  # Gunakan versi ini untuk kompatibilitas dengan kode yang ada
   
   # Utils
   intl: ^0.19.0

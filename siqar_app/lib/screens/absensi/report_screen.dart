@@ -161,7 +161,7 @@ class _ReportScreenState extends State<ReportScreen> {
             _buildStatItem(
               'Total Izin',
               '${report.totalIzin} hari',
-              Icons.vacation_rounded,
+              Icons.event_note, // Replaced vacation_rounded with event_note
               AppConstants.infoColor,
             ),
             _buildStatItem(
