@@ -105,6 +105,10 @@ return [
         ),
     ],
 
+    'aliases' => [
+    'MongoDB' => MongoDB\Client::class,
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver
