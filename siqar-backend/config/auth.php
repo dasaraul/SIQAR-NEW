@@ -3,7 +3,7 @@
 return [
     'defaults' => [
         'guard' => 'web',
-        'passwords' => 'users',
+        'passwords' => 'pengguna',
     ],
 
     'guards' => [

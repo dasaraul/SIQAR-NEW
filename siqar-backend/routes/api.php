@@ -1,288 +1,68 @@
 <?php
 
-namespace App\Http\Controllers\API;
-
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Lokasi;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\LokasiController;
+use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\AbsensiController;
+use App\Http\Controllers\API\QRCodeController;
+use App\Http\Controllers\API\AdminDashboardController;
 
-class LokasiController extends Controller
-{
-    /**
-     * Get all locations
-     */
-    public function index(Request $request)
-    {
-        // Get filter parameters
-        $status = $request->status;
-        $search = $request->search;
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "api" middleware group. Make something great!
+|
+*/
 
-        // Build query
-        $query = Lokasi::query();
+// Route untuk autentikasi
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+// Route yang memerlukan autentikasi
+Route::middleware('auth:sanctum')->group(function () {
+    // Profil pengguna
+    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::post('/profile/update', [AuthController::class, 'updateProfile']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    
+    // Absensi
+    Route::post('/absensi/scan', [AbsensiController::class, 'scanQR']);
+    Route::get('/absensi/history', [AbsensiController::class, 'history']);
+    Route::get('/absensi/today', [AbsensiController::class, 'today']);
+    Route::post('/absensi/request-leave', [AbsensiController::class, 'requestLeave']);
+    Route::get('/absensi/monthly-report', [AbsensiController::class, 'monthlyReport']);
+    
+    // QR Code
+    Route::get('/qrcode/check', [QRCodeController::class, 'checkQRCode']);
+    Route::get('/qrcode/active', [QRCodeController::class, 'getActiveQRCode']);
+    
+    // Lokasi
+    Route::get('/lokasi', [LokasiController::class, 'index']);
+    Route::get('/lokasi/{id}', [LokasiController::class, 'show']);
+    
+    // Admin Dashboard
+    Route::middleware('admin')->group(function () {
+        Route::get('/admin/dashboard', [AdminDashboardController::class, 'dashboardData']);
+        Route::get('/admin/karyawan', [AdminDashboardController::class, 'getKaryawanList']);
+        Route::post('/admin/export-absensi', [AdminDashboardController::class, 'exportAbsensi']);
         
-        if ($status) {
-            $query->where('status', $status);
-        } else {
-            $query->where('status', 'aktif'); // Default to active locations only
-        }
+        // QR Code Management (Admin)
+        Route::post('/admin/qrcode/generate', [QRCodeController::class, 'generateQRCode']);
+        Route::get('/admin/qrcode/list', [QRCodeController::class, 'getAllQRCodes']);
+        Route::put('/admin/qrcode/{id}/deactivate', [QRCodeController::class, 'deactivateQRCode']);
         
-        if ($search) {
-            $query->where(function ($query) use ($search) {
-                $query->where('nama_lokasi', 'like', "%$search%")
-                    ->orWhere('alamat', 'like', "%$search%");
-            });
-        }
-        
-        // Get paginated results
-        $perPage = $request->per_page ?? 10;
-        $lokasi = $query->orderBy('nama_lokasi', 'asc')
-            ->paginate($perPage);
-        
-        // Transform data
-        $result = $lokasi->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'nama_lokasi' => $item->nama_lokasi,
-                'alamat' => $item->alamat,
-                'latitude' => $item->latitude,
-                'longitude' => $item->longitude,
-                'radius' => $item->radius,
-                'status' => $item->status,
-                'keterangan' => $item->keterangan,
-            ];
-        });
-
-        return response()->json([
-            'status' => true,
-            'data' => [
-                'lokasi' => $result,
-                'pagination' => [
-                    'total' => $lokasi->total(),
-                    'per_page' => $lokasi->perPage(),
-                    'current_page' => $lokasi->currentPage(),
-                    'last_page' => $lokasi->lastPage(),
-                ]
-            ]
-        ]);
-    }
-
-    /**
-     * Get a specific location
-     */
-    public function show($id)
-    {
-        $lokasi = Lokasi::find($id);
-        
-        if (!$lokasi) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Lokasi tidak ditemukan',
-            ], 404);
-        }
-
-        return response()->json([
-            'status' => true,
-            'data' => [
-                'lokasi' => [
-                    'id' => $lokasi->id,
-                    'nama_lokasi' => $lokasi->nama_lokasi,
-                    'alamat' => $lokasi->alamat,
-                    'latitude' => $lokasi->latitude,
-                    'longitude' => $lokasi->longitude,
-                    'radius' => $lokasi->radius,
-                    'status' => $lokasi->status,
-                    'keterangan' => $lokasi->keterangan,
-                ]
-            ]
-        ]);
-    }
-
-    /**
-     * Create a new location (Admin only)
-     */
-    public function store(Request $request)
-    {
-        // Only allow admin to access
-        $pengguna = $request->user();
-        
-        if ($pengguna->peran != 'admin') {
-            return response()->json([
-                'status' => false,
-                'message' => 'Hanya admin yang dapat menambahkan lokasi',
-            ], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'nama_lokasi' => 'required|string|max:255',
-            'alamat' => 'required|string|max:500',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'radius' => 'required|numeric|min:10',
-            'status' => 'required|in:aktif,nonaktif',
-            'keterangan' => 'nullable|string|max:500',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        // Create location
-        $lokasi = Lokasi::create([
-            'nama_lokasi' => $request->nama_lokasi,
-            'alamat' => $request->alamat,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'radius' => $request->radius,
-            'status' => $request->status,
-            'keterangan' => $request->keterangan,
-        ]);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Lokasi berhasil ditambahkan',
-            'data' => [
-                'lokasi' => [
-                    'id' => $lokasi->id,
-                    'nama_lokasi' => $lokasi->nama_lokasi,
-                    'alamat' => $lokasi->alamat,
-                    'latitude' => $lokasi->latitude,
-                    'longitude' => $lokasi->longitude,
-                    'radius' => $lokasi->radius,
-                    'status' => $lokasi->status,
-                    'keterangan' => $lokasi->keterangan,
-                ]
-            ]
-        ], 201);
-    }
-
-    /**
-     * Update a location (Admin only)
-     */
-    public function update(Request $request, $id)
-    {
-        // Only allow admin to access
-        $pengguna = $request->user();
-        
-        if ($pengguna->peran != 'admin') {
-            return response()->json([
-                'status' => false,
-                'message' => 'Hanya admin yang dapat memperbarui lokasi',
-            ], 403);
-        }
-
-        // Find location
-        $lokasi = Lokasi::find($id);
-        
-        if (!$lokasi) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Lokasi tidak ditemukan',
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'nama_lokasi' => 'sometimes|string|max:255',
-            'alamat' => 'sometimes|string|max:500',
-            'latitude' => 'sometimes|numeric',
-            'longitude' => 'sometimes|numeric',
-            'radius' => 'sometimes|numeric|min:10',
-            'status' => 'sometimes|in:aktif,nonaktif',
-            'keterangan' => 'nullable|string|max:500',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        // Update location
-        if ($request->has('nama_lokasi')) {
-            $lokasi->nama_lokasi = $request->nama_lokasi;
-        }
-        
-        if ($request->has('alamat')) {
-            $lokasi->alamat = $request->alamat;
-        }
-        
-        if ($request->has('latitude')) {
-            $lokasi->latitude = $request->latitude;
-        }
-        
-        if ($request->has('longitude')) {
-            $lokasi->longitude = $request->longitude;
-        }
-        
-        if ($request->has('radius')) {
-            $lokasi->radius = $request->radius;
-        }
-        
-        if ($request->has('status')) {
-            $lokasi->status = $request->status;
-        }
-        
-        if ($request->has('keterangan')) {
-            $lokasi->keterangan = $request->keterangan;
-        }
-        
-        $lokasi->save();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Lokasi berhasil diperbarui',
-            'data' => [
-                'lokasi' => [
-                    'id' => $lokasi->id,
-                    'nama_lokasi' => $lokasi->nama_lokasi,
-                    'alamat' => $lokasi->alamat,
-                    'latitude' => $lokasi->latitude,
-                    'longitude' => $lokasi->longitude,
-                    'radius' => $lokasi->radius,
-                    'status' => $lokasi->status,
-                    'keterangan' => $lokasi->keterangan,
-                ]
-            ]
-        ]);
-    }
-
-    /**
-     * Delete a location (Admin only)
-     */
-    public function destroy(Request $request, $id)
-    {
-        // Only allow admin to access
-        $pengguna = $request->user();
-        
-        if ($pengguna->peran != 'admin') {
-            return response()->json([
-                'status' => false,
-                'message' => 'Hanya admin yang dapat menghapus lokasi',
-            ], 403);
-        }
-
-        // Find location
-        $lokasi = Lokasi::find($id);
-        
-        if (!$lokasi) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Lokasi tidak ditemukan',
-            ], 404);
-        }
-
-        // Delete location
-        $lokasi->delete();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Lokasi berhasil dihapus',
-        ]);
-    }
-}
+        // Lokasi Management (Admin)
+        Route::post('/lokasi', [LokasiController::class, 'store']);
+        Route::put('/lokasi/{id}', [LokasiController::class, 'update']);
+        Route::delete('/lokasi/{id}', [LokasiController::class, 'destroy']);
+    });
+});

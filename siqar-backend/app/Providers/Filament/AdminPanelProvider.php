@@ -27,7 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login(CustomLogin::class) // Ganti dengan custom login
+            ->login(CustomLogin::class)
             ->colors([
                 'primary' => Color::Indigo,
                 'danger' => Color::Rose,

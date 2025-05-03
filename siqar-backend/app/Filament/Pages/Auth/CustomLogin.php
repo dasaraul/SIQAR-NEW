@@ -7,6 +7,7 @@ use Filament\Http\Responses\Auth\Contracts\LoginResponse;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
+use Filament\Facades\Filament;
 
 class CustomLogin extends BaseLogin
 {
@@ -36,7 +37,7 @@ class CustomLogin extends BaseLogin
 
         // Verifikasi user adalah admin
         $user = Auth::user();
-        if ($user->peran !== 'admin') {
+        if (!$user || $user->peran !== 'admin' || $user->status !== 'aktif') {
             Auth::logout();
             
             throw ValidationException::withMessages([
