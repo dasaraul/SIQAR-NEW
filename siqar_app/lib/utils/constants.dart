@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 
 class AppConstants {
-  // API
-  static const String apiBaseUrl = 'http://127.0.0.1:8000'; // Ganti dengan IP komputer yang menjalankan Laravel
-  // static const String apiBaseUrl = 'http://10.0.2.2:8000/api'; // Untuk Android Emulator  
-  // static const String apiBaseUrl = 'http://localhost:8000/api'; // Untuk iOS Simulator
-  // static const String apiBaseUrl = 'https://your-domain.com/api'; // Untuk Production
+  // API Configuration
+  // Gunakan salah satu dari konfigurasi berikut sesuai dengan environment Anda:
+  
+  // Untuk Android Emulator (gunakan ini jika menjalankan di Android emulator)
+  static const String apiBaseUrl = 'http://192.168.1.3:8000/api';
+  
+  // Untuk iOS Simulator (gunakan ini jika menjalankan di iOS simulator)
+  // static const String apiBaseUrl = 'http://localhost:8000/api';
+  
+  // Untuk device fisik (gunakan IP address komputer Anda)
+  // static const String apiBaseUrl = 'http://192.168.xxx.xxx:8000/api';
+  
+  // Untuk production (gunakan domain)
+  // static const String apiBaseUrl = 'https://your-domain.com/api';
   
   // App Info
   static const String appName = 'SIQAR';
@@ -50,7 +59,7 @@ class AppConstants {
     'nonaktif': 'Nonaktif',
   };
   
-  // Lokasi Radius (dalam meter)  
+  // Lokasi Radius (dalam meter)
   static const int defaultRadius = 100;
   
   // Durasi Animasi
