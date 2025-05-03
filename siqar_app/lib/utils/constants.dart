@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   // API
-  static const String apiBaseUrl = 'http://10.0.2.2:8000/api'; // For Android Emulator
+  // static const String apiBaseUrl = 'http://10.0.2.2:8000/api'; // For Android Emulator
   // static const String apiBaseUrl = 'http://localhost:8000/api'; // For iOS Simulator
   // static const String apiBaseUrl = 'https://your-domain.com/api'; // For Production
-
+  // static const String apiBaseUrl = 'http://127.0.0.1:8000/api'; // For Kiw
   // App Info
   static const String appName = 'SIQAR';
   static const String appVersion = '1.0.0';
