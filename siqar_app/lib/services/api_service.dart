@@ -180,7 +180,7 @@ class ApiService {
         ));
       }
       
-      final response = await _dio.post('/update-profile', data: formData);
+      final response = await _dio.post('/profile/update', data: formData);
       final responseData = _handleResponse(response);
       
       if (responseData['status'] == true) {
@@ -198,7 +198,7 @@ class ApiService {
   
   Future<Map<String, dynamic>> scanQR(String qrCode, double latitude, double longitude, String tipe) async {
     try {
-      final response = await _dio.post('/absensi/scan-qr', data: {
+      final response = await _dio.post('/absensi/scan', data: {
         'qr_code': qrCode,
         'latitude': latitude,
         'longitude': longitude,
@@ -293,7 +293,7 @@ class ApiService {
   
   Future<Map<String, dynamic>> checkQRCode(String kode) async {
     try {
-      final response = await _dio.post('/qrcode/check', data: {
+      final response = await _dio.get('/qrcode/check', queryParameters: {
         'kode': kode,
       });
       return _handleResponse(response);
@@ -313,7 +313,7 @@ class ApiService {
   
   Future<Map<String, dynamic>> generateQRCode(Map<String, dynamic> data) async {
     try {
-      final response = await _dio.post('/qrcode/generate', data: data);
+      final response = await _dio.post('/admin/qrcode/generate', data: data);
       return _handleResponse(response);
     } catch (e) {
       return _handleError(e);
@@ -332,7 +332,7 @@ class ApiService {
       if (status != null) params['status'] = status;
       if (lokasiId != null) params['lokasi_id'] = lokasiId;
       
-      final response = await _dio.get('/qrcode/all', queryParameters: params);
+      final response = await _dio.get('/admin/qrcode/list', queryParameters: params);
       final responseData = _handleResponse(response);
       
       if (responseData['status'] == true && responseData['data'] != null) {
@@ -349,7 +349,7 @@ class ApiService {
   
   Future<Map<String, dynamic>> deactivateQRCode(String id) async {
     try {
-      final response = await _dio.put('/qrcode/$id/deactivate');
+      final response = await _dio.put('/admin/qrcode/$id/deactivate');
       return _handleResponse(response);
     } catch (e) {
       return _handleError(e);

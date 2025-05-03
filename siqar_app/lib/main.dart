@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:siqar_app/providers/auth_provider.dart';
 import 'package:siqar_app/providers/absensi_provider.dart';
 import 'package:siqar_app/screens/auth/login_screen.dart';
+import 'package:siqar_app/screens/home/home_screen.dart';
 import 'package:siqar_app/utils/constants.dart';
 import 'package:siqar_app/utils/theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -33,7 +34,6 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => AbsensiProvider()),
-        // Add other providers here
       ],
       child: MaterialApp(
         title: AppConstants.appName,
@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Splash Screen widget sebagai pengganti SplashScreen yang hilang
+// Splash Screen widget
 class SplashScreenWidget extends StatefulWidget {
   const SplashScreenWidget({Key? key}) : super(key: key);
 
@@ -114,7 +114,7 @@ class _SplashScreenWidgetState extends State<SplashScreenWidget> with SingleTick
   
   void _navigateToHome() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const LoginScreen()), // Ganti dengan HomeScreen setelah dibuat
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
     );
   }
   
@@ -146,18 +146,21 @@ class _SplashScreenWidgetState extends State<SplashScreenWidget> with SingleTick
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      '${AppConstants.imagePath}logo.png',
+                      AppConstants.logoImage,
                       width: 150,
                       height: 150,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           width: 150,
                           height: 150,
-                          color: Colors.white30,
+                          decoration: BoxDecoration(
+                            color: Colors.white30,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           child: const Icon(
-                            Icons.image_not_supported,
+                            Icons.qr_code_scanner,
                             color: Colors.white,
-                            size: 50,
+                            size: 80,
                           ),
                         );
                       },
