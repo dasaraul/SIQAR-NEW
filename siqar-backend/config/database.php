@@ -44,15 +44,15 @@ return [
 
         'mongodb' => [
             'driver' => 'mongodb',
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', 27017),
+            'dsn' => env('DB_DSN', 'mongodb+srv://siqarusn:siqarnichpswd@siqar.is5l3o0.mongodb.net/'),
             'database' => env('DB_DATABASE', 'siqar_db'),
-            'username' => env('DB_USERNAME', 'siqarmin'),
-            'password' => env('DB_PASSWORD', 'siqarpw'),
             'options' => [
                 'database' => env('DB_AUTHENTICATION_DATABASE', 'admin'),
-                // Tambahkan opsi berikut untuk mengatasi masalah kompatibilitas
-                'authSource' => env('DB_AUTHENTICATION_DATABASE', 'admin'),
+                // konfigurasi TLS/SSL
+                'tls' => true,
+                'tlsAllowInvalidCertificates' => true,
+                'tlsAllowInvalidHostnames' => true,
+                'retryWrites' => true,
             ],
         ],
 

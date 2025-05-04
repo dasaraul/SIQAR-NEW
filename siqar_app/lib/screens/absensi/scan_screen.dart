@@ -339,11 +339,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       children: [
         MobileScanner(
           controller: _scannerController,
-          onDetect: (barcode, args) {
-            if (barcode.rawValue != null && mounted && !_isProcessing) {
-              final code = barcode.rawValue!;
-              if (code.isNotEmpty) {
-                _processScanResult(code);
+          onDetect: (capture) {
+            if (capture.barcodes.isNotEmpty && mounted && !_isProcessing) {
+              // In the newer version of mobile_scanner, we access the first barcode from barcodes list
+              final barcode = capture.barcodes.first;
+              if (barcode.rawValue != null && barcode.rawValue!.isNotEmpty) {
+                _processScanResult(barcode.rawValue!);
               }
             }
           },

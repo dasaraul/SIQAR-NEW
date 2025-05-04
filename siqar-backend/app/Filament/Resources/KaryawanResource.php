@@ -147,10 +147,10 @@ class KaryawanResource extends Resource
         ];
     }
     
-    public static function getWidgets(): array
-    {
-        return [
-            KaryawanResource\Widgets\KaryawanStats::class,
-        ];
-    }
+    // public static function getWidgets(): array
+    // {
+    //     return [
+    //         KaryawanResource\Widgets\KaryawanStats::class,
+    //     ];
+    // }
 }
